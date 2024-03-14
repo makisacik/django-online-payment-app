@@ -43,5 +43,10 @@ def login_user(request):
         form = AuthenticationForm()
     return render(request, "register/login.html", {"login_form": form})
 
+@csrf_protect
+def logout_user(request):
+    logout(request)
+    return redirect("login")
+
 def home(request):
     return render(request, "home.html")
