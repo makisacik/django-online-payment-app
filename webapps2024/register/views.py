@@ -4,6 +4,24 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
+from register.forms import RegisterForm
+
+
+@csrf_protect
+def register_user(request):
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, "Registration successful.")
+            return render(request, "home.html")
+        else:
+            print(form.errors)
+            messages.error(request, "Unsuccessful registration. Invalid information.")
+    else:
+        form = RegisterForm()
+    return render(request, "register/register.html", {"register_form": form})
 
 @csrf_protect
 def login_user(request):
@@ -24,3 +42,6 @@ def login_user(request):
     else:
         form = AuthenticationForm()
     return render(request, "register/login.html", {"login_form": form})
+
+def home(request):
+    return render(request, "home.html")

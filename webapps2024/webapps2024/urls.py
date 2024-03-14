@@ -22,4 +22,8 @@ from register import views as auth_views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", auth_views.login_user),
+    path("register/", auth_views.register_user, name="register"),
+    path("login/", auth_views.login_user, name="login"),
+    path("home/", auth_views.home, name="home"),
+
 ]
