@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Login to an Account
+{% endblock %}
+
+{% block content %}
+    <h1>Homepage</h1>
+    
+    <form method="get" action="" class="mb-4"> 
+        <div class="form-group">
+            <input type="text" class="form-control" name="email" placeholder="Search users here">
+        </div>
+        <button type="submit" class="btn btn-primary mt-2 ">Search</button>
+    </form>
+
+    {% if user_emails %}
+        <h2>Search Results</h2>
+        <div class="overflow-auto mb-4" style="max-height: 200px;">
+            <table class="table table-bordered">
+                <thead class="thead-light">
+                <tr>
+                    <th>Email Address</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for email in user_emails %}
+                    <tr>
+                        <td>{{ email }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        {% if request.GET.email %}
+            <p>No results found for "{{ request.GET.email }}" ></p>
+        {% endif %}
+    {% endif %}
+{% endblock %}
