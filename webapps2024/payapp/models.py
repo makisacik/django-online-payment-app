@@ -9,6 +9,20 @@ class UserAccount(models.Model):
     def __str__(self):
         return f"{self.user.username} - Balance: £{self.balance}"
 
+    def add_money(self, amount):
+        with transaction.atomic():
+            user_account = UserAccount.objects.select_for_update().get(pk=self.pk)
+            user_account.balance += amount
+            user_account.save()
+
+    def deduct_money(self, amount):
+        with transaction.atomic():
+            user_account = UserAccount.objects.select_for_update().get(pk=self.pk)
+            if user_account.balance >= amount:
+                user_account.balance -= amount
+                user_account.save()
+            else:
+                raise ValueError("Insufficient funds.")
 
 
 
