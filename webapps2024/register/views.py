@@ -6,6 +6,8 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from register.forms import RegisterForm
 from payapp.views import home
+from payapp.models import UserAccount
+
 
 @csrf_protect
 def register_user(request):
