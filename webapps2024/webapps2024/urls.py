@@ -27,4 +27,5 @@ urlpatterns = [
     path("login/", auth_views.login_user, name="login"),
     path("home/", payapp_views.home, name="home"),
     path("logout/", auth_views.logout_user, name="logout"),
+    path('transfer_money/', payapp_views.transfer_money, name='transfer_money'),
 ]
