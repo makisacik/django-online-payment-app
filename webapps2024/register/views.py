@@ -5,6 +5,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from register.forms import RegisterForm
+from payapp.views import home
+from payapp.models import UserAccount
 
 
 @csrf_protect
@@ -15,7 +17,7 @@ def register_user(request):
             user = form.save()
             login(request, user)
             messages.success(request, "Registration successful.")
-            return render(request, "home.html")
+            return render(request, "payapp/home.html")
         else:
             print(form.errors)
             messages.error(request, "Unsuccessful registration. Invalid information.")
@@ -47,6 +49,3 @@ def login_user(request):
 def logout_user(request):
     logout(request)
     return redirect("login")
-
-def home(request):
-    return render(request, "home.html")

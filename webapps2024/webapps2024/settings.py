@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "register.apps.RegisterConfig",
     "crispy_forms",
     "crispy_bootstrap5",
+    "payapp.apps.PayappConfig"
 ]
 
 MIDDLEWARE = [
@@ -66,6 +67,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'payapp.context_processors.add_user_balance_to_context',
             ],
         },
     },
