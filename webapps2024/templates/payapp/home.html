@@ -35,6 +35,7 @@
                                             <td>{{ email }}</td>
                                             <td>
                                                 <button onclick="openSendMoneyModal('{{ email }}')" class="btn btn-primary btn-sm">Send Money</button>
+                                                <button onclick="openRequestMoneyModal('{{ email }}')" class="btn btn-secondary btn-sm">Request Money</button>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -88,7 +89,6 @@
         </div>
     </div>
 
-    <!-- Modal Structure -->
     <div class="modal fade" id="sendMoneyModal" tabindex="-1" aria-labelledby="sendMoneyModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -114,10 +114,39 @@
         </div>
     </div>
 
+    <div class="modal fade" id="requestMoneyModal" tabindex="-1" aria-labelledby="requestMoneyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="requestMoneyModalLabel">Request Money</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="requestMoneyForm" action="{% url 'request_money' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="recipient_email" id="requestRecipientEmail">
+                        <div class="mb-3">
+                            <label for="requestAmount" class="form-label">Amount (£):</label>
+                            <input type="number" class="form-control" id="requestAmount" name="amount" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         function openSendMoneyModal(email) {
             document.getElementById('recipientEmail').value = email;
             let modal = new bootstrap.Modal(document.getElementById('sendMoneyModal'));
+            modal.show();
+        }
+
+        function openRequestMoneyModal(email) {
+            document.getElementById('requestRecipientEmail').value = email;
+            let modal = new bootstrap.Modal(document.getElementById('requestMoneyModal'));
             modal.show();
         }
     </script>

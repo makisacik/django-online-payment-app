@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from payapp.models import UserAccount, Transaction
+from payapp.models import UserAccount, Transaction, MoneyRequest
 from django.contrib.auth.decorators import login_required
 from django.db import models
 import decimal
@@ -57,6 +57,32 @@ def transfer_money(request):
             messages.error(request, "Recipient user does not exist.")
         except UserAccount.DoesNotExist:
             messages.error(request, "Sender account does not exist.")
+    else:
+        messages.error(request, "Invalid request.")
+
+    return redirect('home')
+
+
+@login_required
+def request_money(request):
+    if request.method == "POST":
+        recipient_email = request.POST.get('recipient_email')
+        try:
+            amount = decimal.Decimal(request.POST.get('amount'))
+            if amount <= 0:
+                messages.error(request, "The amount must be greater than 0.")
+                return redirect('home')
+        except decimal.InvalidOperation:
+            messages.error(request, "Invalid amount entered.")
+            return redirect('home')
+
+        try:
+            sentBy_user = request.user
+            sentTo_user = User.objects.get(email=recipient_email)
+            MoneyRequest.objects.create(sentBy=sentBy_user, sentTo=sentTo_user, amount=amount)
+            messages.success(request, "Money request submitted successfully.")
+        except User.DoesNotExist:
+            messages.error(request, "Recipient user does not exist.")
     else:
         messages.error(request, "Invalid request.")
 

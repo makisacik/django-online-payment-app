@@ -28,4 +28,5 @@ urlpatterns = [
     path("home/", payapp_views.home, name="home"),
     path("logout/", auth_views.logout_user, name="logout"),
     path('transfer_money/', payapp_views.transfer_money, name='transfer_money'),
+    path('request_money/', payapp_views.request_money, name='request_money'),
 ]
