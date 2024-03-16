@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from payapp.models import UserAccount
+from payapp.models import UserAccount, Transaction
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import F
@@ -12,6 +12,8 @@ import decimal
 
 # Create your views here.
 def home(request):
+    all_transactions = Transaction.objects.all()
+    print(all_transactions)
     user_emails = None
     email_query = request.GET.get('email')
     if email_query:
@@ -44,6 +46,9 @@ def transfer_money(request):
             try:
                 sender_account.deduct_money(amount)
                 recipient_account.add_money(amount)
+
+                Transaction.objects.create(sender=request.user, receiver=recipient_user, amount=amount)
+
                 messages.success(request, f"Successfully transferred £{amount} to {recipient_email}.")
             except ValueError as e:
                 messages.error(request, str(e))
