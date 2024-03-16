@@ -89,6 +89,50 @@
         </div>
     </div>
 
+    <div class="col-md-12">
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2>Money Requests</h2>
+            </div>
+            <div class="card-body">
+                {% if money_requests %}
+                    <div class="overflow-auto" style="max-height: 200px;">
+                        <table class="table">
+                            <thead class="thead-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Amount (£)</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for request in money_requests %}
+                                <tr>
+                                    <td>{{ request.timestamp|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ request.sentBy.username }}</td>
+                                    <td>{{ request.sentTo.username }}</td>
+                                    <td>{{ request.amount }}</td>
+                                    <td>
+                                        {% if request.sentTo == user %}
+                                            <button onclick="openSendMoneyModal('{{ request.sentBy.email }}')" class="btn btn-primary btn-sm">Send Money</button>
+                                        {% else %}
+                                            No action
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>No money requests found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
     <div class="modal fade" id="sendMoneyModal" tabindex="-1" aria-labelledby="sendMoneyModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">

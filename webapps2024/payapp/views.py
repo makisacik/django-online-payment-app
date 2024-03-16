@@ -7,19 +7,21 @@ from django.db import models
 import decimal
 
 
+@login_required
 def home(request):
     user_emails = None
     email_query = request.GET.get('email')
     if email_query:
-        user_emails = User.objects.filter(email__icontains=email_query).exclude(email=request.user.email).values_list(
-            'email', flat=True)
+        user_emails = User.objects.filter(email__icontains=email_query).exclude(email=request.user.email).values_list('email', flat=True)
 
-    recent_transactions = Transaction.objects.filter(
-        models.Q(sender=request.user) | models.Q(receiver=request.user)).order_by('-timestamp')[:10]
+    recent_transactions = Transaction.objects.filter(models.Q(sender=request.user) | models.Q(receiver=request.user)).order_by('-timestamp')[:10]
+
+    money_requests = MoneyRequest.objects.filter(models.Q(sentBy=request.user) | models.Q(sentTo=request.user)).order_by('-timestamp')[:10]
 
     context = {
         'user_emails': user_emails,
         'recent_transactions': recent_transactions,
+        'money_requests': money_requests,
     }
 
     return render(request, 'payapp/home.html', context)
