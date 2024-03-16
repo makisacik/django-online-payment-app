@@ -1,72 +1,115 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    Login to an Account
+    Home Dashboard
 {% endblock %}
 
 {% block content %}
-    <h1>Homepage</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Search Users</h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" action="" class="mb-4">
+                            <div class="form-group">
+                                <input type="text" class="form-control" name="email" placeholder="Search users here">
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-2">Search</button>
+                        </form>
 
-    <form method="get" action="" class="mb-4">
-        <div class="form-group">
-            <input type="text" class="form-control" name="email" placeholder="Search users here">
+                        {% if user_emails %}
+                            <div class="overflow-auto mb-4" style="max-height: 200px;">
+                                <table class="table">
+                                    <thead class="thead-light">
+                                    <tr>
+                                        <th>Email Address</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for email in user_emails %}
+                                        <tr>
+                                            <td>{{ email }}</td>
+                                            <td>
+                                                <button onclick="openSendMoneyModal('{{ email }}')" class="btn btn-primary btn-sm">Send Money</button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            {% if request.GET.email %}
+                                <p>No results found for "{{ request.GET.email }}"</p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Recent Transactions</h2>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_transactions %}
+                            <div class="overflow-auto" style="max-height: 200px;">
+                                <table class="table">
+                                    <thead class="thead-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Sender</th>
+                                        <th>Receiver</th>
+                                        <th>Amount (£)</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for transaction in recent_transactions %}
+                                        <tr>
+                                            <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
+                                            <td>{{ transaction.sender.username }}</td>
+                                            <td>{{ transaction.receiver.username }}</td>
+                                            <td>{{ transaction.amount }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p>No recent transactions found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary mt-2">Search</button>
-    </form>
+    </div>
 
-    {% if user_emails %}
-        <h2>Search Results</h2>
-        <div class="overflow-auto mb-4" style="max-height: 200px;">
-            <table class="table table-bordered">
-                <thead class="thead-light">
-                <tr>
-                    <th>Email Address</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for email in user_emails %}
-                    <tr>
-                        <td>{{ email }}</td>
-                        <td>
-                            <button onclick="openSendMoneyModal('{{ email }}')" class="btn btn-primary btn-sm">Send Money</button>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% else %}
-        {% if request.GET.email %}
-            <p>No results found for "{{ request.GET.email }}" ></p>
-        {% endif %}
-    {% endif %}
-
-    <div class="modal" id="sendMoneyModal" tabindex="-1" aria-labelledby="sendMoneyModalLabel" aria-hidden="true">
+    <!-- Modal Structure -->
+    <div class="modal fade" id="sendMoneyModal" tabindex="-1" aria-labelledby="sendMoneyModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-
                 <div class="modal-header">
-                    <h4 class="modal-title" id="sendMoneyModalLabel">Send Money</h4>
+                    <h5 class="modal-title" id="sendMoneyModalLabel">Send Money</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-
                 <div class="modal-body">
                     <form id="sendMoneyForm" action="{% url 'transfer_money' %}" method="post">
                         {% csrf_token %}
                         <input type="hidden" name="recipient_email" id="recipientEmail">
-                        <div class="form-group">
-                            <label for="amount">Amount (£):</label>
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Amount (£):</label>
                             <input type="number" class="form-control" id="amount" name="amount" required>
                         </div>
                         <button type="submit" class="btn btn-primary">Submit</button>
                     </form>
                 </div>
-
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
-
             </div>
         </div>
     </div>
@@ -78,6 +121,4 @@
             modal.show();
         }
     </script>
-
-
 {% endblock %}

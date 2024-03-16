@@ -2,27 +2,27 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from payapp.models import UserAccount, Transaction
-from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import F
-from django.urls import reverse
-from django.core.exceptions import ValidationError
+from django.db import models
 import decimal
 
 
-# Create your views here.
 def home(request):
-    all_transactions = Transaction.objects.all()
-    print(all_transactions)
     user_emails = None
     email_query = request.GET.get('email')
     if email_query:
-        user_emails = User.objects.filter(email__icontains=email_query).values_list('email', flat=True).exclude(
-            email=request.user.email)
+        user_emails = User.objects.filter(email__icontains=email_query).exclude(email=request.user.email).values_list(
+            'email', flat=True)
 
-    user_account = UserAccount.objects.get(user__email='test5@gmail.com')
+    recent_transactions = Transaction.objects.filter(
+        models.Q(sender=request.user) | models.Q(receiver=request.user)).order_by('-timestamp')[:10]
 
-    return render(request, 'payapp/home.html', {'user_emails': user_emails})
+    context = {
+        'user_emails': user_emails,
+        'recent_transactions': recent_transactions,
+    }
+
+    return render(request, 'payapp/home.html', context)
 
 
 @login_required
