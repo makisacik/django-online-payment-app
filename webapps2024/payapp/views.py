@@ -4,7 +4,10 @@ from django.contrib.auth.models import User
 from payapp.models import UserAccount, Transaction, MoneyRequest
 from django.contrib.auth.decorators import login_required
 from django.db import models
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 import decimal
+from django.db import transaction
 
 
 @login_required
@@ -89,3 +92,34 @@ def request_money(request):
         messages.error(request, "Invalid request.")
 
     return redirect('home')
+
+
+@login_required
+def cancel_money_request(request, request_id):
+    money_request = MoneyRequest.objects.filter(pk=request_id).first()
+    if money_request:
+        money_request.delete()
+        messages.success(request, "Money request cancelled successfully.")
+    else:
+        messages.error(request, "Money request not found or you don't have permission to cancel it.")
+    return HttpResponseRedirect(reverse('home'))
+
+
+@login_required
+def accept_money_request(request, request_id):
+    money_request = MoneyRequest.objects.filter(pk=request_id, sentTo=request.user).first()
+
+    with transaction.atomic():
+        sender_account = UserAccount.objects.select_for_update().get(user=money_request.sentBy)
+        recipient_account = UserAccount.objects.select_for_update().get(user=request.user)
+
+        if recipient_account.balance >= money_request.amount:
+            recipient_account.deduct_money(money_request.amount)
+            sender_account.add_money(money_request.amount)
+            Transaction.objects.create(sender=request.user, receiver=money_request.sentBy, amount=money_request.amount)
+            money_request.delete()
+            messages.success(request, "Money request accepted and processed successfully.")
+        else:
+            messages.error(request, "Insufficient funds to complete this request.")
+
+    return HttpResponseRedirect(reverse('home'))

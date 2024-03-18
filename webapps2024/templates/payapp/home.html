@@ -116,9 +116,16 @@
                                     <td>{{ request.amount }}</td>
                                     <td>
                                         {% if request.sentTo == user %}
-                                            <button onclick="openSendMoneyModal('{{ request.sentBy.email }}')" class="btn btn-primary btn-sm">Send Money</button>
+                                            <button data-request-url="{% url 'accept_money_request' request.id %}" onclick="confirmMoneyTransfer(this.getAttribute('data-request-url'), '{{ money_request.amount }}', '{{ money_request.sentBy.email }}')" class="btn btn-success btn-sm">Accept</button>
+                                            <form action="{% url 'cancel_money_request' request.id %}" method="post" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                            </form>
                                         {% else %}
-                                            No action
+                                                <form action="{% url 'cancel_money_request' request.id %}" method="post" style="display: inline;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                                                </form>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -178,6 +185,7 @@
                 </div>
             </div>
         </div>
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     </div>
 
 
@@ -193,5 +201,25 @@
             let modal = new bootstrap.Modal(document.getElementById('requestMoneyModal'));
             modal.show();
         }
+
+        function confirmMoneyTransfer(actionUrl, amount, email) {
+            const isConfirmed = confirm(`Are you sure you want to send £${amount} to ${email}?`);
+            if (isConfirmed) {
+                const form = document.createElement('form');
+                form.action = actionUrl;
+                form.method = 'POST';
+
+                const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
     </script>
 {% endblock %}
