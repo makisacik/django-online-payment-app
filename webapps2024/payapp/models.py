@@ -2,13 +2,21 @@ from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.conf import settings
 
+CURRENCY_CHOICES = [
+    ('USD', 'US Dollar'),
+    ('EUR', 'Euro'),
+    ('GBP', 'British Pound'),
+    ('TRY', 'Turkish Liras'),
+]
+
 
 class UserAccount(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=1000.00)
+    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='GBP')
 
     def __str__(self):
-        return f"{self.user.username} - Balance: £{self.balance}"
+        return f"{self.user.username} - Balance: {self.currency} {self.balance}"
 
     def add_money(self, amount):
         with transaction.atomic():

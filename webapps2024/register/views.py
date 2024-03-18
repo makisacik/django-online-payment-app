@@ -15,15 +15,21 @@ def register_user(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
+            currency = form.cleaned_data.get('currency')
+
+            user_account, created = UserAccount.objects.get_or_create(user=user)
+            user_account.currency = currency
+            user_account.save()
+
             login(request, user)
             messages.success(request, "Registration successful.")
-            return render(request, "payapp/home.html")
+            return redirect('home')
         else:
-            print(form.errors)
             messages.error(request, "Unsuccessful registration. Invalid information.")
     else:
         form = RegisterForm()
     return render(request, "register/register.html", {"register_form": form})
+
 
 @csrf_protect
 def login_user(request):
@@ -44,6 +50,7 @@ def login_user(request):
     else:
         form = AuthenticationForm()
     return render(request, "register/login.html", {"login_form": form})
+
 
 @csrf_protect
 def logout_user(request):
