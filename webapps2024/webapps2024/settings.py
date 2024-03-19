@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     "register.apps.RegisterConfig",
     "crispy_forms",
     "crispy_bootstrap5",
-    "payapp.apps.PayappConfig"
+    "payapp.apps.PayappConfig",
+    'currency_conversion.apps.CurrencyConversionConfig',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [

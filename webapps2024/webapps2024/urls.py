@@ -16,7 +16,7 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from register import views as auth_views
 from payapp import views as payapp_views
 
@@ -31,5 +31,5 @@ urlpatterns = [
     path('request_money/', payapp_views.request_money, name='request_money'),
     path('cancel_money_request/<int:request_id>/', payapp_views.cancel_money_request, name='cancel_money_request'),
     path('accept_money_request/<int:request_id>/', payapp_views.accept_money_request, name='accept_money_request'),
-
+    path('', include('currency_conversion.urls')),
 ]
