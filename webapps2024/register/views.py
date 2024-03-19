@@ -5,8 +5,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from register.forms import RegisterForm
-from payapp.views import home
 from payapp.models import UserAccount
+from payapp.utils import convert_currency
 
 
 @csrf_protect
@@ -17,8 +17,15 @@ def register_user(request):
             user = form.save()
             currency = form.cleaned_data.get('currency')
 
-            user_account, created = UserAccount.objects.get_or_create(user=user)
+            initial_balance_gbp = 1000
+            converted_balance = convert_currency('GBP', currency, initial_balance_gbp)
+            if converted_balance is None:
+                messages.error(request, "Failed to convert currency or unsupported currency selected.")
+                return render(request, "register/register.html", {"register_form": form})
+
+            user_account = UserAccount.objects.get(user=user)
             user_account.currency = currency
+            user_account.balance = converted_balance
             user_account.save()
 
             login(request, user)

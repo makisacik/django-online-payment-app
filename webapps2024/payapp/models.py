@@ -6,7 +6,6 @@ CURRENCY_CHOICES = [
     ('USD', 'US Dollar'),
     ('EUR', 'Euro'),
     ('GBP', 'British Pound'),
-    ('TRY', 'Turkish Liras'),
 ]
 
 
