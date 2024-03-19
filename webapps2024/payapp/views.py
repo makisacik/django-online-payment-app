@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 import decimal
 from django.db import transaction
+from .utils import convert_currency
 
 
 @login_required
@@ -48,13 +49,25 @@ def transfer_money(request):
             recipient_user = User.objects.get(email=recipient_email)
             recipient_account, created = UserAccount.objects.get_or_create(user=recipient_user)
 
+            if sender_account.currency != recipient_account.currency:
+                converted_amount = convert_currency(sender_account.currency, recipient_account.currency, amount)
+                if converted_amount is None:
+                    messages.error(request, "Failed to convert currency.")
+                    return redirect('home')
+            else:
+                converted_amount = amount
+
             try:
                 sender_account.deduct_money(amount)
-                recipient_account.add_money(amount)
+                recipient_account.add_money(decimal.Decimal(converted_amount))
 
-                Transaction.objects.create(sender=request.user, receiver=recipient_user, amount=amount)
+                Transaction.objects.create(
+                    sender=request.user,
+                    receiver=recipient_user,
+                    amount=decimal.Decimal(converted_amount)
+                )
 
-                messages.success(request, f"Successfully transferred £{amount} to {recipient_email}.")
+                messages.success(request, f"Successfully transferred {sender_account.currency} {amount} to {recipient_email}, converted to {recipient_account.currency} {converted_amount:.2f}.")
             except ValueError as e:
                 messages.error(request, str(e))
 
