@@ -7,7 +7,6 @@ from django.db import models
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 import decimal
-from django.db import transaction
 from .utils import convert_currency
 
 
@@ -82,7 +81,6 @@ def transfer_money(request):
     return redirect('home')
 
 
-
 @login_required
 def request_money(request):
     if request.method == "POST":
@@ -143,17 +141,29 @@ def cancel_money_request(request, request_id):
 def accept_money_request(request, request_id):
     money_request = MoneyRequest.objects.filter(pk=request_id, sentTo=request.user).first()
 
-    with transaction.atomic():
-        sender_account = UserAccount.objects.select_for_update().get(user=money_request.sentBy)
-        recipient_account = UserAccount.objects.select_for_update().get(user=request.user)
+    if not money_request:
+        messages.error(request, "Money request not found.")
+        return HttpResponseRedirect(reverse('home'))
 
-        if recipient_account.balance >= money_request.requestedAmount:
-            recipient_account.deduct_money(money_request.requestedAmount)
-            sender_account.add_money(money_request.requestedAmount)
-            Transaction.objects.create(sender=request.user, receiver=money_request.sentBy, amount=money_request.requestedAmount)
-            money_request.delete()
-            messages.success(request, "Money request accepted and processed successfully.")
-        else:
-            messages.error(request, "Insufficient funds to complete this request.")
+    sender_account = UserAccount.objects.get(user=money_request.sentBy)
+    recipient_account = UserAccount.objects.get(user=request.user)
+
+    try:
+        recipient_account.deduct_money(money_request.receivingAmount)
+    except ValueError:
+        messages.error(request, "Insufficient funds to complete this request.")
+        return HttpResponseRedirect(reverse('home'))
+
+    sender_account.add_money(money_request.requestedAmount)
+
+    Transaction.objects.create(
+        sender=money_request.sentBy,
+        receiver=request.user,
+        receivedAmount=money_request.requestedAmount,
+        sentAmount=money_request.receivingAmount,
+    )
+
+    money_request.delete()
+    messages.success(request, "Money request accepted and processed successfully.")
 
     return HttpResponseRedirect(reverse('home'))
