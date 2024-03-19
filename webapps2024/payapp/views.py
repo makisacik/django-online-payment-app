@@ -139,31 +139,33 @@ def cancel_money_request(request, request_id):
 
 @login_required
 def accept_money_request(request, request_id):
-    money_request = MoneyRequest.objects.filter(pk=request_id, sentTo=request.user).first()
-
-    if not money_request:
-        messages.error(request, "Money request not found.")
-        return HttpResponseRedirect(reverse('home'))
-
-    sender_account = UserAccount.objects.get(user=money_request.sentBy)
-    recipient_account = UserAccount.objects.get(user=request.user)
-
     try:
-        recipient_account.deduct_money(money_request.receivingAmount)
-    except ValueError:
-        messages.error(request, "Insufficient funds to complete this request.")
-        return HttpResponseRedirect(reverse('home'))
+        money_request = MoneyRequest.objects.get(pk=request_id, sentTo=request.user)
 
-    sender_account.add_money(money_request.requestedAmount)
+        sender_account = UserAccount.objects.get(user=money_request.sentBy)
+        recipient_account = UserAccount.objects.get(user=request.user)
 
-    Transaction.objects.create(
-        sender=money_request.sentBy,
-        receiver=request.user,
-        receivedAmount=money_request.requestedAmount,
-        sentAmount=money_request.receivingAmount,
-    )
+        if recipient_account.balance >= money_request.receivingAmount:
+            recipient_account.deduct_money(money_request.receivingAmount)
+            sender_account.add_money(money_request.requestedAmount)
 
-    money_request.delete()
-    messages.success(request, "Money request accepted and processed successfully.")
+            Transaction.objects.create(
+                sender=money_request.sentBy,
+                receiver=request.user,
+                receivedAmount=money_request.receivingAmount,
+                sentAmount=money_request.requestedAmount,
+            )
+
+            money_request.delete()
+            messages.success(request, "Money request accepted and processed successfully.")
+        else:
+            messages.error(request, "Insufficient funds to complete this request.")
+
+    except MoneyRequest.DoesNotExist:
+        messages.error(request, "Money request not found.")
+    except UserAccount.DoesNotExist:
+        messages.error(request, "Sender or recipient account does not exist.")
+    except ValueError as e:
+        messages.error(request, str(e))
 
     return HttpResponseRedirect(reverse('home'))
