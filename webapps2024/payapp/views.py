@@ -64,7 +64,8 @@ def transfer_money(request):
                 Transaction.objects.create(
                     sender=request.user,
                     receiver=recipient_user,
-                    amount=decimal.Decimal(converted_amount)
+                    receivedAmount=decimal.Decimal(converted_amount),
+                    sentAmount=decimal.Decimal(amount),
                 )
 
                 messages.success(request, f"Successfully transferred {sender_account.currency} {amount} to {recipient_email}, converted to {recipient_account.currency} {converted_amount:.2f}.")
@@ -126,10 +127,10 @@ def accept_money_request(request, request_id):
         sender_account = UserAccount.objects.select_for_update().get(user=money_request.sentBy)
         recipient_account = UserAccount.objects.select_for_update().get(user=request.user)
 
-        if recipient_account.balance >= money_request.amount:
-            recipient_account.deduct_money(money_request.amount)
-            sender_account.add_money(money_request.amount)
-            Transaction.objects.create(sender=request.user, receiver=money_request.sentBy, amount=money_request.amount)
+        if recipient_account.balance >= money_request.receivedAmount:
+            recipient_account.deduct_money(money_request.receivedAmount)
+            sender_account.add_money(money_request.receivedAmount)
+            Transaction.objects.create(sender=request.user, receiver=money_request.sentBy, amount=money_request.receivedAmount)
             money_request.delete()
             messages.success(request, "Money request accepted and processed successfully.")
         else:

@@ -65,7 +65,7 @@
                                         <th>Date</th>
                                         <th>Sender</th>
                                         <th>Receiver</th>
-                                        <th>Amount (£)</th>
+                                        <th>Amount {{ user_balance_info.currency }}</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -74,7 +74,14 @@
                                             <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
                                             <td>{{ transaction.sender.username }}</td>
                                             <td>{{ transaction.receiver.username }}</td>
-                                            <td>{{ transaction.amount }}</td>
+                                            
+                                            <td>
+                                                {% if transaction.receiver.username == request.user.username %}
+                                                    {{ transaction.receivedAmount }}
+                                                {% else %}
+                                                    {{ transaction.sentAmount }}
+                                                {% endif %}
+                                            </td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>
