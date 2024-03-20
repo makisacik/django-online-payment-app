@@ -15,7 +15,7 @@ class UserAccount(models.Model):
     currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='GBP')
 
     def __str__(self):
-        return f"{self.user.username} - Balance: {self.currency} {self.balance}"
+        return f"{self.user.username} - Balance:  {self.balance} {self.currency}"
 
     def add_money(self, amount):
         with transaction.atomic():
@@ -42,7 +42,7 @@ class Transaction(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Transaction from {self.sender} to {self.receiver} amount £{self.receivedAmount} on {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+        return f"Transaction from {self.sender} to {self.receiver} amount {self.receivedAmount} on {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
 
 
 class MoneyRequest(models.Model):
@@ -54,5 +54,5 @@ class MoneyRequest(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Money Request from {self.sentBy} to {self.sentTo} amount £{self.requestedAmount} on {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+        return f"Money Request from {self.sentBy} to {self.sentTo} amount {self.requestedAmount} on {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
 
