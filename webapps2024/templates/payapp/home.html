@@ -65,7 +65,7 @@
                                         <th>Date</th>
                                         <th>Sender</th>
                                         <th>Receiver</th>
-                                        <th>Amount (£)</th>
+                                        <th>Amount {{ user_balance_info.currency }}</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -74,7 +74,14 @@
                                             <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
                                             <td>{{ transaction.sender.username }}</td>
                                             <td>{{ transaction.receiver.username }}</td>
-                                            <td>{{ transaction.amount }}</td>
+                                            
+                                            <td>
+                                                {% if transaction.receiver.username == request.user.username %}
+                                                    {{ transaction.receivedAmount }}
+                                                {% else %}
+                                                    {{ transaction.sentAmount }}
+                                                {% endif %}
+                                            </td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>
@@ -103,26 +110,32 @@
                                 <th>Date</th>
                                 <th>From</th>
                                 <th>To</th>
-                                <th>Amount (£)</th>
+                                <th>Amount {{ user_balance_info.currency }}</th>
                                 <th>Actions</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {% for request in money_requests %}
+                            {% for money_request in money_requests %}
                                 <tr>
-                                    <td>{{ request.timestamp|date:"Y-m-d H:i" }}</td>
-                                    <td>{{ request.sentBy.username }}</td>
-                                    <td>{{ request.sentTo.username }}</td>
-                                    <td>{{ request.amount }}</td>
+                                    <td>{{ money_request.timestamp|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ money_request.sentBy.username }}</td>
+                                    <td>{{ money_request.sentTo.username }}</td>
                                     <td>
-                                        {% if request.sentTo == user %}
-                                            <button data-request-url="{% url 'accept_money_request' request.id %}" onclick="confirmMoneyTransfer(this.getAttribute('data-request-url'), '{{ money_request.amount }}', '{{ money_request.sentBy.email }}')" class="btn btn-success btn-sm">Accept</button>
-                                            <form action="{% url 'cancel_money_request' request.id %}" method="post" style="display: inline;">
+                                        {% if money_request.sentBy.username == request.user.username %}
+                                            {{ money_request.requestedAmount }}
+                                        {% else %}
+                                            {{ money_request.receivingAmount }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if money_request.sentTo == user %}
+                                            <button data-request-url="{% url 'accept_money_request' money_request.id %}" onclick="confirmMoneyTransfer(this.getAttribute('data-request-url'), '{{ money_request.receivingAmount }}', '{{ money_request.sentBy.email }}')" class="btn btn-success btn-sm">Accept</button>
+                                            <form action="{% url 'cancel_money_request' money_request.id %}" method="post" style="display: inline;">
                                                 {% csrf_token %}
                                                 <button type="submit" class="btn btn-danger btn-sm">Reject</button>
                                             </form>
                                         {% else %}
-                                                <form action="{% url 'cancel_money_request' request.id %}" method="post" style="display: inline;">
+                                                <form action="{% url 'cancel_money_request' money_request.id %}" method="post" style="display: inline;">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
                                                 </form>
@@ -152,7 +165,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="recipient_email" id="recipientEmail">
                         <div class="mb-3">
-                            <label for="amount" class="form-label">Amount (£):</label>
+                            <label for="amount" class="form-label">Amount {{ user_balance_info.currency }}:</label>
                             <input type="number" class="form-control" id="amount" name="amount" required>
                         </div>
                         <button type="submit" class="btn btn-primary">Submit</button>
@@ -177,7 +190,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="recipient_email" id="requestRecipientEmail">
                         <div class="mb-3">
-                            <label for="requestAmount" class="form-label">Amount (£):</label>
+                            <label for="requestAmount" class="form-label">Amount {{ user_balance_info.currency }}:</label>
                             <input type="number" class="form-control" id="requestAmount" name="amount" required>
                         </div>
                         <button type="submit" class="btn btn-primary">Submit</button>
@@ -203,7 +216,7 @@
         }
 
         function confirmMoneyTransfer(actionUrl, amount, email) {
-            const isConfirmed = confirm(`Are you sure you want to send £${amount} to ${email}?`);
+            const isConfirmed = confirm(`Are you sure you want to send ${amount} {{ user_balance_info.currency }} to ${email}?`);
             if (isConfirmed) {
                 const form = document.createElement('form');
                 form.action = actionUrl;

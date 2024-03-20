@@ -5,8 +5,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from register.forms import RegisterForm
-from payapp.views import home
 from payapp.models import UserAccount
+from payapp.utils import convert_currency
 
 
 @csrf_protect
@@ -15,15 +15,28 @@ def register_user(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
+            currency = form.cleaned_data.get('currency')
+
+            initial_balance_gbp = 1000
+            converted_balance = convert_currency('GBP', currency, initial_balance_gbp)
+            if converted_balance is None:
+                messages.error(request, "Failed to convert currency or unsupported currency selected.")
+                return render(request, "register/register.html", {"register_form": form})
+
+            user_account = UserAccount.objects.get(user=user)
+            user_account.currency = currency
+            user_account.balance = converted_balance
+            user_account.save()
+
             login(request, user)
             messages.success(request, "Registration successful.")
-            return render(request, "payapp/home.html")
+            return redirect('home')
         else:
-            print(form.errors)
             messages.error(request, "Unsuccessful registration. Invalid information.")
     else:
         form = RegisterForm()
     return render(request, "register/register.html", {"register_form": form})
+
 
 @csrf_protect
 def login_user(request):
@@ -44,6 +57,7 @@ def login_user(request):
     else:
         form = AuthenticationForm()
     return render(request, "register/login.html", {"login_form": form})
+
 
 @csrf_protect
 def logout_user(request):

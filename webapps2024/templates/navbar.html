@@ -18,7 +18,7 @@
                     <a class="nav-link" href="#">Welcome, {{user.username}}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Balance: £{{ user_balance }}</a>
+                    <a class="nav-link" href="#">Balance: {{ user_balance_info.balance }} {{ user_balance_info.currency }}</a>
                 </li>
             {% else %}
 
