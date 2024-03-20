@@ -8,18 +8,28 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 import decimal
 from .utils import convert_currency
-
+from django.core.paginator import Paginator
+from django.db.models import Q
 
 @login_required
 def home(request):
     user_emails = None
     email_query = request.GET.get('email')
     if email_query:
-        user_emails = User.objects.filter(email__icontains=email_query).exclude(email=request.user.email).values_list('email', flat=True)
+        user_emails_list = User.objects.filter(email__icontains=email_query).exclude(email=request.user.email).values_list('email', flat=True)
+        user_emails_paginator = Paginator(user_emails_list, 5)
+        user_emails_page_number = request.GET.get('user_emails_page')
+        user_emails = user_emails_paginator.get_page(user_emails_page_number)
 
-    recent_transactions = Transaction.objects.filter(models.Q(sender=request.user) | models.Q(receiver=request.user)).order_by('-timestamp')[:10]
+    recent_transactions_list = Transaction.objects.filter(Q(sender=request.user) | Q(receiver=request.user)).order_by('-timestamp')
+    recent_transactions_paginator = Paginator(recent_transactions_list, 5)
+    transactions_page_number = request.GET.get('transactions_page')
+    recent_transactions = recent_transactions_paginator.get_page(transactions_page_number)
 
-    money_requests = MoneyRequest.objects.filter(models.Q(sentBy=request.user) | models.Q(sentTo=request.user)).order_by('-timestamp')[:10]
+    money_requests_list = MoneyRequest.objects.filter(Q(sentBy=request.user) | Q(sentTo=request.user)).order_by('-timestamp')
+    money_requests_paginator = Paginator(money_requests_list, 3)
+    money_requests_page_number = request.GET.get('money_requests_page')
+    money_requests = money_requests_paginator.get_page(money_requests_page_number)
 
     context = {
         'user_emails': user_emails,
