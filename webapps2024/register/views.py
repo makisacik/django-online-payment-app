@@ -4,9 +4,10 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
-from register.forms import RegisterForm
+from register.forms import RegisterForm, AdminRegisterForm
 from payapp.models import UserAccount
 from payapp.utils import convert_currency
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 
 @csrf_protect
@@ -36,6 +37,27 @@ def register_user(request):
     else:
         form = RegisterForm()
     return render(request, "register/register.html", {"register_form": form})
+
+
+@csrf_protect
+@login_required
+@user_passes_test(lambda user: user.is_superuser)
+def register_admin(request):
+    if request.method == 'POST':
+        form = AdminRegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            user.is_superuser = True
+            user.is_staff = True
+            user.save()
+            messages.success(request, f"Admin registration successful for {user.email}.")
+
+            return redirect('admin_home')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = AdminRegisterForm()
+    return render(request, 'register/admin-register.html', {'AdminRegisterForm': form})
 
 
 @csrf_protect
