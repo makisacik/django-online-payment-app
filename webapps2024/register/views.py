@@ -48,8 +48,12 @@ def login_user(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                messages.info(request, f"You are now logged in as {username}.")
-                return redirect("home")
+                if user.is_superuser or user.is_staff:
+                    messages.info(request, f"Welcome back, Admin {username}.")
+                    return redirect("admin_home")
+                else:
+                    messages.info(request, f"You are now logged in as {username}.")
+                    return redirect("home")
             else:
                 messages.error(request, "Invalid username or password.")
         else:

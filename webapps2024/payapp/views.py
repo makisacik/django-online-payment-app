@@ -2,14 +2,48 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from payapp.models import UserAccount, Transaction, MoneyRequest
-from django.contrib.auth.decorators import login_required
-from django.db import models
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 import decimal
 from .utils import convert_currency
 from django.core.paginator import Paginator
 from django.db.models import Q
+
+
+@login_required
+@user_passes_test(lambda user: user.is_superuser)
+def admin_home(request):
+    user_emails = None
+    selected_user_email = request.GET.get('selected_user')
+    email_query = request.GET.get('email')
+    user_account = None
+
+    if email_query:
+        user_emails_list = User.objects.filter(email__icontains=email_query).exclude(email=request.user.email).values_list('email', flat=True)
+        user_emails_paginator = Paginator(user_emails_list, 5)
+        user_emails_page_number = request.GET.get('user_emails_page')
+        user_emails = user_emails_paginator.get_page(user_emails_page_number)
+
+    recent_transactions = None
+    if selected_user_email:
+        selected_user = User.objects.filter(email=selected_user_email).first()
+        if selected_user:
+            user_account = UserAccount.objects.filter(user=selected_user).first()
+            recent_transactions_list = Transaction.objects.filter(Q(sender=selected_user) | Q(receiver=selected_user)).order_by('-timestamp')
+            recent_transactions_paginator = Paginator(recent_transactions_list, 10)
+            transactions_page_number = request.GET.get('transactions_page')
+            recent_transactions = recent_transactions_paginator.get_page(transactions_page_number)
+
+    context = {
+        'user_emails': user_emails,
+        'recent_transactions': recent_transactions,
+        'searched_email': email_query,
+        'selected_user_email': selected_user_email,
+        'user_account': user_account,
+    }
+
+    return render(request, 'payapp/admin-home.html', context)
 
 @login_required
 def home(request):
@@ -38,6 +72,7 @@ def home(request):
     }
 
     return render(request, 'payapp/home.html', context)
+
 
 
 @login_required
