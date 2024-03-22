@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Admin Dashboard
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Search Users To Display Their Info</h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" action="" class="mb-4">
+                            <div class="form-group">
+                                <input type="text" class="form-control" name="email" placeholder="Search users here" value="{{ searched_email|default_if_none:'' }}">
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-2">Search</button>
+                        </form>
+
+                        {% if searched_email %}
+                            {% if user_emails %}
+                                <div class="overflow-auto mb-4">
+                                    <table class="table">
+                                        <thead class="thead-light">
+                                        <tr>
+                                            <th>Email Address</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for email in user_emails %}
+                                            <tr>
+                                                <td>{{ email }}</td>
+                                                <td>
+                                                    <a href="?selected_user={{ email }}&email={{ searched_email }}" class="btn btn-primary btn-sm">Get user info</a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    <nav aria-label="User emails pagination" class="d-flex justify-content-center">
+                                        <ul class="pagination">
+                                            <li class="page-item {% if not user_emails.has_previous %}disabled{% endif %}">
+                                                <a class="page-link" href="{% if user_emails.has_previous %}?email={{ request.GET.email|default:'' }}&user_emails_page={{ user_emails.previous_page_number }}&selected_user={{ request.GET.selected_user|default:'' }}&transactions_page={{ request.GET.transactions_page|default:1 }}{% else %}#{% endif %}" tabindex="-1" aria-disabled="true">Previous</a>
+                                            </li>
+                                            {% for num in user_emails.paginator.page_range %}
+                                                <li class="page-item {% if user_emails.number == num %}active{% endif %}">
+                                                    <a class="page-link" href="?email={{ request.GET.email|default:'' }}&user_emails_page={{ num }}&selected_user={{ request.GET.selected_user|default:'' }}&transactions_page={{ request.GET.transactions_page|default:1 }}">{{ num }}</a>
+                                                </li>
+                                            {% endfor %}
+                                            <li class="page-item {% if not user_emails.has_next %}disabled{% endif %}">
+                                                <a class="page-link" href="{% if user_emails.has_next %}?email={{ request.GET.email|default:'' }}&user_emails_page={{ user_emails.next_page_number }}&selected_user={{ request.GET.selected_user|default:'' }}&transactions_page={{ request.GET.transactions_page|default:1 }}{% else %}#{% endif %}">Next</a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+
+                                </div>
+                            {% else %}
+                                <p>No results found.</p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <a href="{% url 'register_admin' %}" class="btn btn-primary mt-2">Register an admin!</a>
+
+
+            </div>
+
+            <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h2>User Account Info</h2>
+                        </div>
+                        <div class="card-body">
+                            {% if user_account %}
+                                <p>Username: {{ user_account.user.username }}</p>
+                                <p>Balance: {{ user_account.balance }}</p>
+                                <p>Currency: {{ user_account.currency }}</p>
+                            {% else %}
+                                <p> No user selected.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Recent Transactions</h2>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_transactions %}
+                            <div class="overflow-auto">
+                                <table class="table">
+                                    <thead class="thead-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Sender</th>
+                                        <th>Receiver</th>
+                                        <th>Received Amount</th>
+                                        <th>Sent Amount</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for transaction in recent_transactions %}
+                                        <tr>
+                                            <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
+                                            <td>{{ transaction.sender.email }}</td>
+                                            <td>{{ transaction.receiver.email }}</td>
+                                            <td>{{ transaction.receivedAmount }}</td>
+                                            <td>{{ transaction.sentAmount }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                                <nav aria-label="Recent transactions pagination" class="d-flex justify-content-center">
+                                    <ul class="pagination">
+                                        <li class="page-item {% if not recent_transactions.has_previous %}disabled{% endif %}">
+                                            <a class="page-link" href="{% if recent_transactions.has_previous %}?transactions_page={{ recent_transactions.previous_page_number }}&selected_user={{ selected_user_email }}&user_emails_page={{ request.GET.user_emails_page|default:1 }}{% if searched_email %}&email={{ searched_email }}{% endif %}{% else %}#{% endif %}" tabindex="-1" aria-disabled="true">Previous</a>
+                                        </li>
+                                        {% for num in recent_transactions.paginator.page_range %}
+                                            <li class="page-item {% if recent_transactions.number == num %}active{% endif %}">
+                                                <a class="page-link" href="?transactions_page={{ num }}&selected_user={{ selected_user_email }}&user_emails_page={{ request.GET.user_emails_page|default:1 }}{% if searched_email %}&email={{ searched_email }}{% endif %}">{{ num }}</a>
+                                            </li>
+                                        {% endfor %}
+                                        <li class="page-item {% if not recent_transactions.has_next %}disabled{% endif %}">
+                                            <a class="page-link" href="{% if recent_transactions.has_next %}?transactions_page={{ recent_transactions.next_page_number }}&selected_user={{ selected_user_email }}&user_emails_page={{ request.GET.user_emails_page|default:1 }}{% if searched_email %}&email={{ searched_email }}{% endif %}{% else %}#{% endif %}">Next</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        {% else %}
+                            <p>No transactions found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+{% endblock %}

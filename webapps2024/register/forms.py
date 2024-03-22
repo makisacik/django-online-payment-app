@@ -11,3 +11,10 @@ class RegisterForm(UserCreationForm):
     class Meta:
         model = User
         fields = ["username", "email", "password1", "password2", "currency"]
+
+
+class AdminRegisterForm(UserCreationForm):
+    email = forms.EmailField()
+    class Meta:
+        model = User
+        fields = ["username", "email", "password1", "password2"]
