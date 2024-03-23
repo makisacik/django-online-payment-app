@@ -195,10 +195,10 @@ def accept_money_request(request, request_id):
             sender_account.add_money(money_request.requestedAmount)
 
             Transaction.objects.create(
-                sender=money_request.sentBy,
-                receiver=request.user,
-                receivedAmount=money_request.receivingAmount,
-                sentAmount=money_request.requestedAmount,
+                sender=request.user,
+                receiver=money_request.sentBy,
+                receivedAmount=money_request.requestedAmount,
+                sentAmount=money_request.receivingAmount,
             )
 
             money_request.delete()

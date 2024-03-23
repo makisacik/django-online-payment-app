@@ -65,7 +65,7 @@
                     </div>
                 </div>
 
-                <a href="{% url 'register_admin' %}" class="btn btn-primary mt-2">Register an admin!</a>
+                <a href="{% url 'register_admin' %}" class="btn btn-primary mt-2">Register an admin</a>
 
 
             </div>
@@ -92,29 +92,33 @@
                     </div>
                     <div class="card-body">
                         {% if recent_transactions %}
-                            <div class="overflow-auto">
-                                <table class="table">
-                                    <thead class="thead-light">
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Sender</th>
-                                        <th>Receiver</th>
-                                        <th>Received Amount</th>
-                                        <th>Sent Amount</th>
+                            <div class="overflow-auto"><table class="table">
+                                <thead class="thead-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Sender</th>
+                                    <th>Sent Amount</th>
+                                    <th>Receiver</th>
+                                    <th>Received Amount</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for transaction in recent_transactions %}
+                                    <tr class="{% if transaction.sender == user_account.user %}table-danger{% else %}table-success{% endif %}">
+                                        <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
+                                        <td>{{ transaction.sender.email }}</td>
+                                        <td>
+                                            {{ transaction.sentAmount }} {{ transaction.sender.useraccount.currency }}
+                                        </td>
+                                        <td>{{ transaction.receiver.email }}</td>
+                                        <td>
+                                            {{ transaction.receivedAmount }} {{ transaction.receiver.useraccount.currency }}
+                                        </td>
                                     </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for transaction in recent_transactions %}
-                                        <tr>
-                                            <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
-                                            <td>{{ transaction.sender.email }}</td>
-                                            <td>{{ transaction.receiver.email }}</td>
-                                            <td>{{ transaction.receivedAmount }}</td>
-                                            <td>{{ transaction.sentAmount }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
                                 <nav aria-label="Recent transactions pagination" class="d-flex justify-content-center">
                                     <ul class="pagination">
                                         <li class="page-item {% if not recent_transactions.has_previous %}disabled{% endif %}">

@@ -78,28 +78,25 @@
                                 <thead class="thead-light">
                                 <tr>
                                     <th>Date</th>
-                                    <th>Sender</th>
-                                    <th>Receiver</th>
-                                    <th>Amount {{ user_balance_info.currency }}</th>
+                                    <th>Transaction Detail</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 {% for transaction in recent_transactions %}
-                                    <tr>
+                                    <tr class="{% if transaction.sender == request.user %}table-danger{% else %}table-success{% endif %}">
                                         <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
-                                        <td>{{ transaction.sender.username }}</td>
-                                        <td>{{ transaction.receiver.username }}</td>
                                         <td>
-                                            {% if transaction.receiver.username == request.user.username %}
-                                                {{ transaction.receivedAmount }}
+                                            {% if transaction.receiver == request.user %}
+                                                {{ transaction.receivedAmount }} {{ user_balance_info.currency }} received from {{ transaction.sender.username }}
                                             {% else %}
-                                                {{ transaction.sentAmount }}
+                                                {{ transaction.sentAmount }} {{ user_balance_info.currency }} sent to {{ transaction.receiver.username }}
                                             {% endif %}
                                         </td>
                                     </tr>
                                 {% endfor %}
                                 </tbody>
                             </table>
+
                         </div>
                         {% if recent_transactions.has_other_pages %}
                             <nav aria-label="Recent transactions pagination" class="d-flex justify-content-center">
@@ -148,10 +145,10 @@
                             {% for money_request in money_requests %}
                                 <tr>
                                     <td>{{ money_request.timestamp|date:"Y-m-d H:i" }}</td>
-                                    <td>{{ money_request.sentBy.username }}</td>
-                                    <td>{{ money_request.sentTo.username }}</td>
+                                    <td>{{ money_request.sentBy.email }}</td>
+                                    <td>{{ money_request.sentTo.email }}</td>
                                     <td>
-                                        {% if money_request.sentBy.username == request.user.username %}
+                                        {% if money_request.sentBy == request.user %}
                                             {{ money_request.requestedAmount }}
                                         {% else %}
                                             {{ money_request.receivingAmount }}
