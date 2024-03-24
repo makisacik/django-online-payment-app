@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "payapp.apps.PayappConfig",
     'currency_conversion.apps.CurrencyConversionConfig',
     'rest_framework',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
