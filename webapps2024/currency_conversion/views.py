@@ -9,6 +9,7 @@ EXCHANGE_RATES = {
 }
 
 
+
 class CurrencyConversion(APIView):
     def get(self, request, currency1, currency2, amount):
         try:
