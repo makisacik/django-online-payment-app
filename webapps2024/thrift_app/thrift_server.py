@@ -19,9 +19,8 @@ def start_server():
     pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 
     server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
-    print('Starting the server...')
+    print('Starting the Thrift server')
     server.serve()
-    print('done.')
 
 
 server_thread = None
@@ -29,14 +28,10 @@ server_thread = None
 
 def run_thrift_server():
     global server_thread
-    print("Attempting to start the Thrift server...")
     if server_thread is None or not server_thread.is_alive():
-        print("Starting new Thrift server thread...")
         server_thread = threading.Thread(target=start_server)
         server_thread.daemon = True
         server_thread.start()
-    else:
-        print("Server thread already exists and is alive.")
 
 
 if __name__ == '__main__':
