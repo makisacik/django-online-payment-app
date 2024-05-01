@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'currency_conversion.apps.CurrencyConversionConfig',
     'rest_framework',
     'django_extensions',
+    'thrift_app.apps.ThriftAppConfig'
 ]
 
 MIDDLEWARE = [
