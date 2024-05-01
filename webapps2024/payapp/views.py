@@ -9,6 +9,7 @@ import decimal
 from .utils import convert_currency
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.db import transaction
 
 
 @login_required
@@ -20,7 +21,8 @@ def admin_home(request):
     user_account = None
 
     if email_query:
-        user_emails_list = User.objects.filter(email__icontains=email_query).exclude(email=request.user.email).values_list('email', flat=True)
+        user_emails_list = User.objects.filter(email__icontains=email_query).exclude(
+            email=request.user.email).values_list('email', flat=True)
         user_emails_paginator = Paginator(user_emails_list, 5)
         user_emails_page_number = request.GET.get('user_emails_page')
         user_emails = user_emails_paginator.get_page(user_emails_page_number)
@@ -30,7 +32,8 @@ def admin_home(request):
         selected_user = User.objects.filter(email=selected_user_email).first()
         if selected_user:
             user_account = UserAccount.objects.filter(user=selected_user).first()
-            recent_transactions_list = Transaction.objects.filter(Q(sender=selected_user) | Q(receiver=selected_user)).order_by('-timestamp')
+            recent_transactions_list = Transaction.objects.filter(
+                Q(sender=selected_user) | Q(receiver=selected_user)).order_by('-timestamp')
             recent_transactions_paginator = Paginator(recent_transactions_list, 10)
             transactions_page_number = request.GET.get('transactions_page')
             recent_transactions = recent_transactions_paginator.get_page(transactions_page_number)
@@ -45,22 +48,26 @@ def admin_home(request):
 
     return render(request, 'payapp/admin-home.html', context)
 
+
 @login_required
 def home(request):
     user_emails = None
     email_query = request.GET.get('email')
     if email_query:
-        user_emails_list = User.objects.filter(email__icontains=email_query).exclude(email=request.user.email).values_list('email', flat=True)
+        user_emails_list = User.objects.filter(email__icontains=email_query).exclude(
+            email=request.user.email).values_list('email', flat=True)
         user_emails_paginator = Paginator(user_emails_list, 5)
         user_emails_page_number = request.GET.get('user_emails_page')
         user_emails = user_emails_paginator.get_page(user_emails_page_number)
 
-    recent_transactions_list = Transaction.objects.filter(Q(sender=request.user) | Q(receiver=request.user)).order_by('-timestamp')
+    recent_transactions_list = Transaction.objects.filter(Q(sender=request.user) | Q(receiver=request.user)).order_by(
+        '-timestamp')
     recent_transactions_paginator = Paginator(recent_transactions_list, 5)
     transactions_page_number = request.GET.get('transactions_page')
     recent_transactions = recent_transactions_paginator.get_page(transactions_page_number)
 
-    money_requests_list = MoneyRequest.objects.filter(Q(sentBy=request.user) | Q(sentTo=request.user)).order_by('-timestamp')
+    money_requests_list = MoneyRequest.objects.filter(Q(sentBy=request.user) | Q(sentTo=request.user)).order_by(
+        '-timestamp')
     money_requests_paginator = Paginator(money_requests_list, 3)
     money_requests_page_number = request.GET.get('money_requests_page')
     money_requests = money_requests_paginator.get_page(money_requests_page_number)
@@ -74,8 +81,8 @@ def home(request):
     return render(request, 'payapp/home.html', context)
 
 
-
 @login_required
+@transaction.atomic
 def transfer_money(request):
     if request.method == "POST":
         recipient_email = request.POST.get('recipient_email')
@@ -112,7 +119,8 @@ def transfer_money(request):
                     sentAmount=decimal.Decimal(amount),
                 )
 
-                messages.success(request, f"Successfully transferred {sender_account.currency} {amount} to {recipient_email}, converted to {recipient_account.currency} {converted_amount:.2f}.")
+                messages.success(request,
+                                 f"Successfully transferred {sender_account.currency} {amount} to {recipient_email}, converted to {recipient_account.currency} {converted_amount:.2f}.")
             except ValueError as e:
                 messages.error(request, str(e))
 
@@ -127,6 +135,7 @@ def transfer_money(request):
 
 
 @login_required
+@transaction.atomic
 def request_money(request):
     if request.method == "POST":
         recipient_email = request.POST.get('recipient_email')
@@ -146,7 +155,8 @@ def request_money(request):
             sent_to_account, created = UserAccount.objects.get_or_create(user=sent_to_user)
 
             if sent_by_account.currency != sent_to_account.currency:
-                receiving_amount = convert_currency(sent_by_account.currency, sent_to_account.currency, requested_amount)
+                receiving_amount = convert_currency(sent_by_account.currency, sent_to_account.currency,
+                                                    requested_amount)
                 if receiving_amount is None:
                     messages.error(request, "Failed to convert currency.")
                     return redirect('home')

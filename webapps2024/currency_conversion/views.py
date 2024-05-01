@@ -8,11 +8,9 @@ EXCHANGE_RATES = {
     'GBP': {'USD': 1.28, 'EUR': 1.18},
 }
 
-
 class CurrencyConversion(APIView):
     def get(self, request, currency1, currency2, amount):
         try:
-            # Convert amount to float and ensure it's positive
             amount_of_currency1 = max(0, float(amount))
         except ValueError:
             return Response("Invalid amount specified.", status=status.HTTP_400_BAD_REQUEST)
