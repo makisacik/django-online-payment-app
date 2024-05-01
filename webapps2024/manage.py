@@ -3,6 +3,8 @@
 import os
 import sys
 
+from thrift_app.thrift_server import run_thrift_server
+
 
 def main():
     """Run administrative tasks."""
@@ -15,6 +17,9 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
+    if os.environ.get('RUN_MAIN', None) != 'true':
+        from thrift_app.thrift_server import run_thrift_server
+        run_thrift_server()
     execute_from_command_line(sys.argv)
 
 
