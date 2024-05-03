@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 
 @receiver(post_save, sender=User)
 def create_user_account(sender, instance, created, **kwargs):
-    print("create_user_account")
     if created:
         UserAccount.objects.create(user=instance)
     else:
