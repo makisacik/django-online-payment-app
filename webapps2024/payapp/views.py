@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 import decimal
-from .utils import convert_currency
+from currency_conversion.views import CurrencyConversion
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db import transaction
@@ -101,7 +101,7 @@ def transfer_money(request):
             recipient_account, created = UserAccount.objects.get_or_create(user=recipient_user)
 
             if sender_account.currency != recipient_account.currency:
-                converted_amount = convert_currency(sender_account.currency, recipient_account.currency, amount)
+                converted_amount = CurrencyConversion.convert_currency(sender_account.currency, recipient_account.currency, amount)
                 if converted_amount is None:
                     messages.error(request, "Failed to convert currency.")
                     return redirect('home')
@@ -155,8 +155,7 @@ def request_money(request):
             sent_to_account, created = UserAccount.objects.get_or_create(user=sent_to_user)
 
             if sent_by_account.currency != sent_to_account.currency:
-                receiving_amount = convert_currency(sent_by_account.currency, sent_to_account.currency,
-                                                    requested_amount)
+                receiving_amount = CurrencyConversion.convert_currency(sent_by_account.currency, sent_to_account.currency, requested_amount)
                 if receiving_amount is None:
                     messages.error(request, "Failed to convert currency.")
                     return redirect('home')

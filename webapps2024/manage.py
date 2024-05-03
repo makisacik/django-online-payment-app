@@ -3,9 +3,6 @@
 import os
 import sys
 
-from thrift_app.thrift_server import run_thrift_server
-
-
 def main():
     """Run administrative tasks."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webapps2024.settings")
