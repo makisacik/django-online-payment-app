@@ -36,40 +36,30 @@ class UserAccount(models.Model):
             else:
                 raise ValueError("Insufficient funds.")
 
-
 def get_safe_current_timestamp():
     try:
         timestamp = thrift_app.thrift_client.get_current_timestamp()
         if isinstance(timestamp, str):
             timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
-
         utc_zone = pytz.utc
         timestamp = utc_zone.localize(timestamp)
-
         timestamp += timedelta(hours=1)
-
-        return models.DateTimeField(default=timestamp)
+        return timestamp
     except Exception as e:
         print(f"Failed to get timestamp from Thrift service: {str(e)}")
-        uk_time = datetime.datetime.now(datetime.UTC) + timedelta(hours=1)
-        utc_zone = pytz.utc
-        uk_time = utc_zone.localize(uk_time)
-
-        return models.DateTimeField(default=uk_time)
-
+        uk_time = datetime.now(pytz.utc) + timedelta(hours=1)
+        return uk_time
 
 class Transaction(models.Model):
     id = models.AutoField(primary_key=True)
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='sent_transactions', on_delete=models.CASCADE)
-    receiver = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='received_transactions',
-                                 on_delete=models.CASCADE)
+    receiver = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='received_transactions', on_delete=models.CASCADE)
     receivedAmount = models.DecimalField(max_digits=10, decimal_places=2)
     sentAmount = models.DecimalField(max_digits=10, decimal_places=2)
-    timestamp = get_safe_current_timestamp()
+    timestamp = models.DateTimeField(default=get_safe_current_timestamp)
 
     def __str__(self):
         return f"Transaction from {self.sender} to {self.receiver} amount {self.receivedAmount} on {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
-
 
 class MoneyRequest(models.Model):
     id = models.AutoField(primary_key=True)
@@ -77,7 +67,7 @@ class MoneyRequest(models.Model):
     sentTo = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='received_requests', on_delete=models.CASCADE)
     requestedAmount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     receivingAmount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    timestamp = get_safe_current_timestamp()
+    timestamp = models.DateTimeField(default=get_safe_current_timestamp)
 
     def __str__(self):
         return f"Money Request from {self.sentBy} to {self.sentTo} amount {self.requestedAmount} on {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
