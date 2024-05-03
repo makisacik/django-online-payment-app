@@ -51,7 +51,11 @@ def get_safe_current_timestamp():
         return models.DateTimeField(default=timestamp)
     except Exception as e:
         print(f"Failed to get timestamp from Thrift service: {str(e)}")
-        return models.DateTimeField(auto_now_add=True)
+        uk_time = datetime.datetime.now(datetime.UTC) + timedelta(hours=1)
+        utc_zone = pytz.utc
+        uk_time = utc_zone.localize(uk_time)
+
+        return models.DateTimeField(default=uk_time)
 
 
 class Transaction(models.Model):
