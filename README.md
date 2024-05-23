@@ -27,7 +27,7 @@ python manage.py runserver
 
 python manage.py runserver_plus --cert-file domain_name.crt --key-file domain_name.key
 
-# Some screenshots from the app:
+# Some screenshots from the app
 
 <img width="468" alt="image" src="https://github.com/makisacik/django-online-payment-app/assets/71513921/09dce887-132d-42b5-a25e-4fe12a38c470">
 
